@@ -4,10 +4,10 @@ These shaders are meant to be ran in [Shadron](https://www.arteryengine.com/shad
 
 ## Example:
 
-**Spiral Shader**: [link](http://i.imgur.com/hMILNvu.gifv).
+**Spiral Shader**: [1](http://i.imgur.com/hMILNvu.gifv)
 
-**Distortion Field:** [link](https://gfycat.com/UnsungGraveCommabutterfly).
+**Distortion Field:** [1](https://gfycat.com/UnsungGraveCommabutterfly)
 
-**Waves:** [link](https://gfycat.com/ShadyAgedGonolek).
+**Waves:** [1](https://gfycat.com/ShadyAgedGonolek)
 
-**Pixels:** [link](https://gfycat.com/IdioticImprobableDarwinsfox).
+**Pixels:** [1](https://gfycat.com/IdioticImprobableDarwinsfox) [2](https://gfycat.com/WelcomeImpressionableIbadanmalimbe)
