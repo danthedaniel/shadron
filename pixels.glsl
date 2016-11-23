@@ -20,14 +20,14 @@ glsl vec4 drawPixels(vec2 pos) {
     float t = -shadron_Time * timeScale; // Rotation angle, theta
     pos = rotMat(t) * (pos - origin);
 
-    float blockSize = sin(shadron_Time * timeScale) * 25 + 30;
+    float blockSize = sin(shadron_Time * timeScale) * 25 + 45;
     float stepPos = sin(shadron_Time * timeScale) * 0.752 - 0.0325;
-    float thisSample = step(stepPos, perlinNoise(floor(pos / blockSize)));
+    float upperSample = step(stepPos, perlinNoise(floor(pos / blockSize)));
 
     // Add drop shadow
     vec2 lowerOffset = rotMat(t + PI / 4) * vec2(-0.15, 0.15) * blockSize;
-    float lowerSample = 0.4 * step(stepPos, perlinNoise(floor((pos + lowerOffset)/ blockSize)));
-    thisSample = clamp(thisSample + lowerSample, 0.0, 1.0);
+    float lowerSample = 0.4 * step(stepPos, perlinNoise(floor((pos + lowerOffset) / blockSize)));
+    float thisSample = clamp(upperSample + lowerSample, 0.0, 1.0);
 
     return vec4(vec3(thisSample), 1.0);
 }
