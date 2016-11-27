@@ -4,6 +4,9 @@
 
 parameter float timeScale = 0.2 : range(0.03, 0.5);
 
+const float thisSaturation = 0.8;
+const float coordMult = 1000.0;
+
 // Generates a rotation matrix
 glsl mat2 rotMat(float t) {
     return mat2(
@@ -19,10 +22,15 @@ glsl vec3 hsv2rgb(vec3 c)
     return c.z * normalize(mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y));
 }
 
+glsl float hueFromPos(vec2 pos, float zoom) {
+  vec2 quantPos = floor(pos / zoom) * zoom;
+  float hue = perlinNoise(quantPos / (coordMult * 1.5));
+  return hue;
+}
+
 glsl vec4 drawPixels(vec2 pos) {
     // Transform coordinate space
-    float coordMult = 1000.0;
-    vec2 scale = vec2(1.0) * coordMult;
+    vec2 scale = vec2(coordMult);
     vec2 origin = scale / 2;
     pos = pos * scale;
 
@@ -32,20 +40,24 @@ glsl vec4 drawPixels(vec2 pos) {
     float t = -scaledTime; // Rotation angle, theta
     pos = rotMat(t) * (pos - origin);
 
-    float zoom = sin(scaledTime) * 25 + 45;
+    float zoom = sin(scaledTime) * 15 + 65;
     float stepPos = sin(scaledTime) * 0.752 - 0.0325;
-    float upperSample = step(stepPos, perlinNoise(floor(pos / zoom)));
+    float upperValue = step(stepPos, perlinNoise(floor(pos / zoom)));
+    float upperHue = hueFromPos(pos, zoom);
 
     // Add drop shadow
     vec2 lowerOffset = rotMat(t + PI / 4) * vec2(-0.15, 0.15) * zoom;
-    float lowerSample = 0.4 * step(stepPos, perlinNoise(floor((pos + lowerOffset) / zoom)));
-    float thisSample = clamp(upperSample + lowerSample, 0.0, 1.0);
+    float lowerValue = 0.3 * step(stepPos, perlinNoise(floor((pos + lowerOffset) / zoom)));
+    float lowerHue = hueFromPos(pos + lowerOffset, zoom);
+
+    // Combine lower and upper
+    float thisHue = upperValue == 0.0 ? lowerHue : upperHue;
+    float thisValue = clamp(upperValue + lowerValue, 0.0, 1.0);
 
     // Add color
-    float hue = mod((pos.x + coordMult * scaledTime / 10) / (coordMult * 4), 1.0);
-    vec3 thisColor = hsv2rgb(vec3(hue, 0.8, thisSample));
+    vec3 thisColor = hsv2rgb(vec3(thisHue, thisSaturation, thisValue));
 
     return vec4(thisColor, 1.0);
 }
 
-animation pixels = glsl(multisample<drawPixels, 4>, 1600, 900);
+animation pixels = glsl(multisample<drawPixels, 4>, 1280, 720);
