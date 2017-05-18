@@ -53,17 +53,24 @@ glsl vec2 freqSample(float angle) {
 }
 
 /**
- * Call freqSample 3 times around a specified angle and average the results.
+ * Call freqSample multiple times around a specified angle and average the results.
  *
  * float angle: A value in the range -PI..PI.
+ * int numSamples: Number of times to call freqSample. Should be greater than 1.
  * returns : A vec2 of two values in the range 0..1.
  */
-glsl vec2 smoothFreqSample(float angle) {
-    vec2 sample1 = freqSample(max(angle - 0.005, -PI));
-    vec2 sample2 = freqSample(angle);
-    vec2 sample3 = freqSample(min(angle + 0.005, PI));
+glsl vec2 smoothFreqSample(float angle, int numSamples) {
+    vec2 sum = vec2(0.0);
+    float stepSize = 0.005;
+    int perDirection = int(floor(numSamples / 2.0));
 
-    return (sample1 + sample2 + sample3) / 3;
+    for (int i = 1; i <= perDirection; i++)
+        sum += freqSample(max(angle - (i * stepSize), -PI));
+
+    for (int i = 0; i <= perDirection; i++)
+        sum += freqSample(min(angle + (i * stepSize), PI));
+
+    return sum / numSamples;
 }
 
 /**
@@ -91,7 +98,7 @@ glsl vec4 jellyViz(sampler2D self, vec2 pos, float deltaTime) {
     float angle = atan(normalVec.y, normalVec.x);
 
     // Get the FFT data for both channels
-    vec2 ripples = smoothFreqSample(angle);
+    vec2 ripples = smoothFreqSample(angle, 7);
 
     // Use the FFT as a radius modifier
     bool innerCircle = distFromOrigin < (radius + 0.02 * (ripples.x + ripples.y));
