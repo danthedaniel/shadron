@@ -13,3 +13,5 @@ These shaders are meant to be ran in [Shadron](https://www.arteryengine.com/shad
 **Pixels:** [1](https://gfycat.com/IdioticImprobableDarwinsfox) [2](https://gfycat.com/WelcomeImpressionableIbadanmalimbe) [3](https://gfycat.com/HideousCostlyCleanerwrasse)
 
 **Circular Viz:** [1](https://gfycat.com/PointlessFewAphid)
+
+**Jelly Vis:** [1](https://gfycat.com/IdealContentCygnet)
