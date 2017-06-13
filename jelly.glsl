@@ -5,7 +5,7 @@
 #include <math_constants>
 #include <perlin>
 
-const ivec2 DIMENSIONS = ivec2(1920, 1080);
+const ivec2 DIMENSIONS = ivec2(1600, 900);
 
 sound audioInput = file();
 parameter float baseRadius = 0.3 : range(0.2, 0.5);
@@ -74,6 +74,18 @@ glsl vec2 smoothFreqSample(float angle, int numSamples) {
 }
 
 /**
+ * Provides a radius that varies with time.
+ *
+ * float timeIndex: When to sample the radius for.
+ * returns: Radius modifier.
+ */
+glsl float radiusFunc(float timeIndex) {
+    return 0.04 * sin(timeIndex) +
+           0.03 * sin(timeIndex * 0.5 + 1.0) +
+           0.03 * sin(timeIndex * 0.3 + 0.5);
+}
+
+/**
  * Starts the feedback loop with a transparent background.
  */
 glsl vec4 initViz(vec2 pos) {
@@ -85,7 +97,7 @@ glsl vec4 initViz(vec2 pos) {
  */
 glsl vec4 jellyViz(sampler2D self, vec2 pos, float deltaTime) {
     // Scale radius with time
-    float radius = baseRadius + 0.1 * sin(shadron_Time);
+    float radius = baseRadius + radiusFunc(shadron_Time);
     // Scale the X-dimension of the center and position vectors appropriately,
     // given the images aspect ratio.
     vec2 center = vec2(0.5 * shadron_Aspect, 0.5);
@@ -98,7 +110,7 @@ glsl vec4 jellyViz(sampler2D self, vec2 pos, float deltaTime) {
     float angle = atan(normalVec.y, normalVec.x);
 
     // Get the FFT data for both channels
-    vec2 ripples = smoothFreqSample(angle, 7);
+    vec2 ripples = smoothFreqSample(angle, 5);
 
     // Use the FFT as a radius modifier
     bool innerCircle = distFromOrigin < (radius + 0.02 * (ripples.x + ripples.y));
@@ -111,36 +123,41 @@ glsl vec4 jellyViz(sampler2D self, vec2 pos, float deltaTime) {
 
     // Sample previous frame
     vec2 offsetPos = vec2(pos.x, min(1.0, pos.y + 0.002));
-    vec4 previousSample =  0.97 * texture(self, offsetPos).rgba;
+    // Progressively decay older frames' opacity
+    vec4 previousSample = texture(self, offsetPos) * vec4(vec3(1.0), 0.93);
 
     vec4 waveSample = innerCircle ? previousSample : (outerCircle ? rightHueShift : previousSample);
 
     return waveSample;
 }
 
-feedback Jellyfish = glsl(multisampleFeedback<jellyViz, 2>, DIMENSIONS) : initialize(initViz), full_range(true), filter(nearest);
+feedback Jellyfish = glsl(multisampleFeedback<jellyViz, 3>, DIMENSIONS) : initialize(initViz), full_range(true), filter(nearest);
 
 /**
- * Draw an animated perlin-noise background.
+ * Draw an animated stary background.
  */
 glsl vec4 background(vec2 pos) {
-    float noise1 = perlinNoise(pos * 1000.0 - (sin(0.34 * shadron_Time) + shadron_Time));
-    float noise2 = perlinNoise(pos * 500.0 + (sin(0.34 * shadron_Time) + shadron_Time));
-    float combinedNoise = 1.0 - step(min(noise1 + noise2, 1.0), 0.98);
-    vec3 noiseColor = vec3(combinedNoise * 0.15);
-    vec3 bottomGradient = vec3(0.0);
+    float starNoise = (perlinNoise(pos * 80.0) + perlinNoise(pos * 200.0)) / 2.0;
+    float stars = pow(smoothstep(0.7, 0.9, starNoise), 2);
+    float sparkle = (shadron_Spectrum(audioInput, abs(pos.x * 2.0 - 1.0)).x +
+                    shadron_Spectrum(audioInput, abs(pos.y * 2.0 - 1.0)).y) *
+                    perlinNoise(pos * 4.0 + shadron_Time / 4.0);
+    vec3 sparklyStars = vec3(sparkle * stars + 0.4 * stars);
 
-    return vec4(mix(bottomGradient, noiseColor, pow(pos.y, 2)), 1.0);
+    return vec4(sparklyStars, 1.0);
 }
 
-animation Background = glsl(multisample<background, 2>, DIMENSIONS);
+animation Background = glsl(background, DIMENSIONS);
 
 /**
  * Composite together the background with the foreground.
  */
 glsl vec4 combineLayers(vec2 pos) {
     vec3 bg = texture(Background, pos).rgb;
-    vec4 fg = texture(Jellyfish, pos);
+
+    // jelly position adjustments are 1 second behind radius changes
+    vec2 jellyPos = vec2(pos.x, pos.y + radiusFunc(shadron_Time - 1.0) * 0.75);
+    vec4 fg = texture(Jellyfish, jellyPos);
 
     return vec4(mix(bg, fg.rgb, fg.a), 1.0);
 }
