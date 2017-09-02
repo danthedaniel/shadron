@@ -30,7 +30,7 @@ glsl float gradientFromOffset(vec2 pos, vec2 offset) {
 
 glsl vec4 gradient(vec2 pos) {
     vec2 offsetH = vec2(1 / float(shadron_Dimensions.x), 0.0);
-    vec2 offsetV = vec2(0.0, 1 / 1 / float(shadron_Dimensions.y));
+    vec2 offsetV = vec2(0.0, 1 / float(shadron_Dimensions.y));
 
     vec3 pixel = vec3(
         gradientFromOffset(pos, offsetH) * horizontal,
