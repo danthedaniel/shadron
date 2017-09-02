@@ -1,6 +1,6 @@
 /**
  * Calculate the approximate gradients of an image on both the X and Y axis.
- * Vertical gradient is mapped to the green channel, horizontal gradien is
+ * Vertical gradient is mapped to the green channel, horizontal gradient is
  * mapped to the red channel.
  */
 
