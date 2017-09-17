@@ -41,4 +41,4 @@ glsl vec4 gradient(vec2 pos) {
     return vec4(pixel, 1.0);
 }
 
-animation Gradient = glsl(gradient, 1600, 900);
+image Gradient = glsl(gradient, 1600, 900);
