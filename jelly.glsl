@@ -1,3 +1,7 @@
+/**
+ * NOTE: This file requires a multisampleFeedback function which isn't included
+ * with shadron as of the time I last checked.
+ */
 #extension ffmpeg
 
 #include <multisample>
